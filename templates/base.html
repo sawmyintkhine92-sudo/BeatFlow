@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeatFlow Music</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .global-player-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 14, 20, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-white">
+
+    <div class="container mt-4" style="margin-bottom: 100px;">
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <p class="text-warning">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+
+    </div>
+
+    <!-- JS (IMPORTANT) -->
+    
+    <audio id="player"></audio>
+
+<div class="global-player-container">
+    <div id="nowText">🎧 Not Playing</div>
+
+    <div>
+        <button onclick="prevSong()">⏮️</button>
+        <button onclick="togglePlay()">⏯️</button>
+        <button onclick="nextSong()">⏭️</button>
+    </div>
+
+    <input type="range" id="seek">
+    🔊 <input type="range" id="volume" min="0" max="1" step="0.01">
+</div>
+
+<script>
+    window.USER_ID = "{{ current_user.id }}";
+</script>
+
+<script src="{{ url_for('static', filename='player.js') }}"></script>

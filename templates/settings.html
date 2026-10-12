@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings - BeatFlow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: radial-gradient(circle at top right, #1a1525, #0a090d);
+            color: #f1f1f4;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        .settings-card {
+            background: rgba(25, 24, 35, 0.7);
+            border-radius: 18px;
+            padding: 30px;
+            max-width: 600px;
+            margin: 60px auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #c084fc, #e879f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #8b5cf6, #d946ef);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px;
+            font-weight: 600;
+        }
+
+        .btn-home {
+            background: rgba(255,255,255,0.08);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 10px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .form-control {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="settings-card">
+
+    <a href="{{ url_for('index') }}" class="btn-home">⬅ Home</a>
+
+    <h2 class="text-gradient fw-bold mb-4">⚙️ Settings</h2>
+
+    <!-- Change Username -->
+    <form method="POST" action="{{ url_for('change_name') }}" class="mb-3">
+        <label class="form-label">Change Username</label>
+        <input type="text" name="username" class="form-control mb-2">
+        <button class="btn btn-premium w-100">Update Name</button>
+    </form>
+
+    <hr>
+
+    <!-- Change Email -->
+    <form method="POST" action="{{ url_for('change_email') }}" class="mb-3">
+        <label class="form-label">Change Email</label>
+        <input type="email" name="email" class="form-control mb-2">
+        <button class="btn btn-premium w-100">Update Email</button>
+    </form>
+
+    <hr>
+
+    <!-- Change Password -->
+    <form method="POST" action="{{ url_for('change_password') }}" class="mb-3">
+        <label class="form-label">Change Password</label>
+        <input type="password" name="old_password" placeholder="Old Password" class="form-control mb-2">
+        <input type="password" name="new_password" placeholder="New Password" class="form-control mb-2">
+        <button class="btn btn-premium w-100">Update Password</button>
+    </form>
+
+    <hr>
+
+    <!-- Remove Profile Picture -->
+    <a href="{{ url_for('delete_profile_pic') }}" class="btn btn-danger w-100 mb-2">
+        🗑 Remove Profile Picture
+    </a>
+
+    <!-- Logout -->
+    <a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100">
+        🚪 Logout
+    </a>
+
+</div>
+
+</body>
+</html>

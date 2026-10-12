@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Favorites - BeatFlow</title>
+
+<style>
+body{
+    background:#0a090d;
+    color:white;
+    font-family:Arial;
+    padding-bottom:170px; /* Player Bar အတွက် နေရာချန်ထားခြင်း */
+}
+
+.box{
+    padding:12px;
+    margin:10px 0;
+    background:#111;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+    transition: 0.2s ease;
+}
+
+button{
+    padding:6px 10px;
+    margin:3px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.controls{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #181818;
+    padding: 15px;
+    text-align: center;
+    border-top: 1px solid #333;
+    z-index: 999;
+}
+
+.player-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.player-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:260px;
+    text-align: left;
+}
+
+.player-left img{
+    width:55px;
+    height:55px;
+    border-radius:8px;
+    display:none;
+    object-fit:cover;
+}
+
+.player-center{
+    flex:1;
+    text-align:center;
+}
+
+.player-right{
+    width:220px;
+    text-align:right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+input[type=range]{
+    width:170px;
+    accent-color:#1DB954; 
+}
+
+.delete-btn{
+    color:red;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.song-item{
+    transition:0.2s;
+}
+
+.song-item:hover{
+    transform:scale(1.01);
+}
+
+.seek-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 5px;
+    font-size: 13px;
+    color: #b3b3b3;
+}
+#seek {
+    width: 300px; 
+}
+
+/* 🎯 Custom Confirmation Modal Popup CSS Style များ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.modal-box {
+    background: #181818;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transform: scale(0.8);
+    transition: transform 0.2s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-overlay.active .modal-box {
+    transform: scale(1);
+}
+
+.modal-buttons {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modal-btn {
+    padding: 8px 16px;
+    font-weight: bold;
+    border-radius: 6px;
+}
+
+.btn-confirm {
+    background: red;
+    color: white;
+}
+
+.btn-cancel {
+    background: #333;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<audio id="player" hidden></audio>
+
+<h2>⭐ My Favorite Songs</h2>
+
+<div style="margin-bottom:15px;">
+    <h3>💖 Favorites (<span id="count">{{ favorites|length if favorites else 0 }}</span>)</h3>
+    <input type="text"
+           id="favSearchBox"
+           placeholder="Search favorite song..."
+           style="padding:6px 10px;border-radius:8px;border:none;width:200px;">
+</div>
+
+<a href="{{ url_for('index') }}">
+    <button>🏠 Home</button>
+</a>
+
+{% for f in favorites %}
+<div class="box song-item"
+     id="fav-row-{{ f.id }}"
+     data-src="{{ url_for('static', filename=f.file_path) }}"
+     data-title="{{ f.song_title }}"
+     data-thumb="{{ f.thumbnail_path }}"
+     style="gap:10px;align-items:center;">
+    
+    <span style="display:flex;align-items:center;gap:10px;">
+        <img src="{{ f.thumbnail_path or 'https://img.youtube.com/vi/' ~ f.youtube_id ~ '/hqdefault.jpg' }}"
+             style="width:45px;height:45px;border-radius:6px;object-fit:cover;">
+        <div>
+            <b class="index-number" style="color: white; margin-right: 5px;">{{ loop.index }}. </b>
+            🎵 {{ f.song_title }}
+        </div>
+    </span>
+    <div style="display: flex; align-items: center;">
+        <button class="delete-btn" data-fav-id="{{ f.id }}">🗑️</button>
+    </div>
+</div>
+{% endfor %}
+
+<div class="modal-overlay" id="customConfirmModal">
+    <div class="modal-box">
+        <h3 style="margin-top: 0; color: white;">Remove Track?</h3>
+        <p style="color: #b3b3b3; font-size: 14px;">Are you sure you want to remove this song from favorites?</p>
+        <div class="modal-buttons">
+            <button class="modal-btn btn-confirm" id="modalConfirmBtn">Remove</button>
+            <button class="modal-btn btn-cancel" id="modalCancelBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="controls">
+    <div class="player-bar">
+        <div class="player-left">
+            <img id="nowThumb">
+            <div id="nowText">🎧 Not Playing</div>
+        </div>
+
+        <div class="player-center">
+            <button onclick="prevSong()">⏮️</button>
+            <button onclick="togglePlay()">⏯️</button>
+            <button onclick="nextSong()">⏭️</button>
+
+            <button id="shuffleBtn" onclick="toggleShuffle()">🔀</button>
+            <button id="repeatBtn" onclick="toggleRepeat()">🔁</button>
+            <br>
+
+            <div class="seek-container">
+                <span id="currentTime">0:00</span>
+                <input type="range" id="seek" value="0">
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <div class="player-right">
+            🔊
+            <input id="volume"
+                   type="range"
+                   min="0"
+                   max="1"
+                   step="0.01">
+        </div>
+    </div>
+</div>
+
+<script>
+    window.USER_ID = "{{ current_user.id if current_user else 'guest' }}";
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // 🎯 Search Filter စနစ်
+    const favSearchBox = document.getElementById("favSearchBox");
+    if (favSearchBox) {
+        favSearchBox.addEventListener("input", function () {
+            let filter = favSearchBox.value.toLowerCase();
+            let songItems = document.querySelectorAll(".song-item");
+
+            songItems.forEach(item => {
+                let songTitle = item.getAttribute("data-title") ? item.getAttribute("data-title").toLowerCase() : "";
+                if (songTitle.includes(filter)) {
+                    item.style.display = "flex";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        });
+    }
+
+    // 🎯 Custom Modal လုပ်ဆောင်ချက် အပိုင်း
+    const modal = document.getElementById("customConfirmModal");
+    const confirmBtn = document.getElementById("modalConfirmBtn");
+    const cancelBtn = document.getElementById("modalCancelBtn");
+    let targetFavId = null; // ဖျက်မည့် သီချင်း id ကို ခေတ္တသိမ်းရန်
+
+    // အမှိုက်ပုံးနှိပ်လျှင် Custom Modal အကွက်ကို ဖော်ပြခြင်း
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", function (e) {
+            e.stopPropagation(); 
+            targetFavId = btn.getAttribute("data-fav-id");
+            if (modal) modal.classList.add("active");
+        });
+    });
+
+    // Cancel ခလုတ်နှိပ်လျှင် ပိတ်ခြင်း
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", function () {
+            if (modal) modal.classList.remove("active");
+            targetFavId = null;
+        });
+    }
+
+    // Remove ခလုတ်အနီရောင်ကို နှိပ်လျှင် နောက်ကွယ်မှ ဖျက်ခြင်းလုပ်ငန်းစဉ် လုပ်ဆောင်ခြင်း
+    if (confirmBtn) {
+        confirmBtn.addEventListener("click", function () {
+            if (!targetFavId) return;
+
+            if (modal) modal.classList.remove("active");
+
+            fetch("/delete_favorite/" + targetFavId)
+            .then(() => {
+                let row = document.getElementById("fav-row-" + targetFavId);
+                if (row) {
+                    row.style.opacity = "0";
+                    setTimeout(() => {
+                        row.remove();
+                        // သီချင်းအရေအတွက် လျှော့ချခြင်း
+                        let countSpan = document.getElementById("count");
+                        if (countSpan) {
+                            let currentCount = parseInt(countSpan.innerText) || 0;
+                            if (currentCount > 0) countSpan.innerText = currentCount - 1;
+                        }
+                    }, 200);
+                }
+                targetFavId = null;
+            })
+            .catch(err => console.error("Error deleting:", err));
+        });
+    }
+});
+</script>
+
+<script>
+(function() {
+    let userId = window.USER_ID || "guest";
+    let items = document.querySelectorAll(".song-item");
+    
+    if (items.length > 0) {
+        let pageSongs = Array.from(items).map(i => ({
+            src: i.dataset.src,
+            title: i.dataset.title,
+            thumb: i.dataset.thumb
+        }));
+        localStorage.setItem("globalPlaylist_" + userId, JSON.stringify(pageSongs));
+    }
+})();
+</script>
+
+<script src="{{ url_for('static', filename='player.js') }}"></script>
+
+</body>
+</html>

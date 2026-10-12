@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - BeatFlow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: radial-gradient(circle at top right, #1a1525, #0a090d); color: #f1f1f4; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+        .premium-card { background: rgba(25, 24, 35, 0.6); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 16px; padding: 30px; backdrop-filter: blur(8px); max-width: 500px; margin: 60px auto; }
+        .avatar-container { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin: 0 auto 20px; border: 3px solid #c084fc; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
+        .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-premium { background: linear-gradient(135deg, #8b5cf6, #d946ef); color: white; border: none; border-radius: 12px; font-weight: 600; padding: 10px 24px; }
+        .text-gradient { background: linear-gradient(135deg, #c084fc, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="premium-card text-center">
+            <h3 class="fw-bold mb-4 text-gradient">👤 User Profile</h3>
+            
+            <div class="avatar-container">
+                {% if user.profile_image == 'default.png' %}
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed={{ user.username }}" class="avatar-img" alt="Default Avatar">
+                {% else %}
+                    <img src="{{ url_for('static', filename='uploads/profile_pics/' + user.profile_image) }}" class="avatar-img" alt="Profile Image">
+                {% endif %}
+            </div>
+
+            <h4 class="fw-bold text-white mb-1">{{ user.username }}</h4>
+            <p class="text-muted mb-2">{{ user.email }}</p>
+            <small class="text-white-50 d-block mb-4">Member Since: {{ user.joined_date.strftime('%Y-%m-%d') }}</small>
+
+            {% if user.profile_image != 'default.png' %}
+                <a href="{{ url_for('delete_profile_pic') }}" class="btn btn-sm btn-outline-danger px-3 mb-3" style="border-radius: 8px;">🗑️ Remove Profile Photo</a>
+            {% endif %}
+
+            <hr style="border-color: rgba(255,255,255,0.08);">
+
+            <!-- Upload Form -->
+            <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data" class="mt-4 text-start">
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small fw-bold">Update Profile Picture:</label>
+                    <input type="file" name="profile_pic" class="form-control bg-dark text-white border-secondary" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn btn-premium w-100 mt-2">📤 Upload Photo</button>
+            </form>
+
+            <div class="mt-4">
+                <a href="{{ url_for('index') }}" class="text-decoration-none text-muted small">← Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

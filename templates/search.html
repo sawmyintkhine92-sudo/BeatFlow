@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-light mb-4">⬅️ Back to Home</a>
+
+    <h2 class="text-white mb-4">🔍 Search Songs</h2>
+    
+    <form action="{{ url_for('search_song') }}" method="POST" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search_query" class="form-control bg-dark text-white border-secondary" placeholder="Type song title or artist..." value="{{ query }}" required>
+            <button class="btn btn-success" type="submit">Search</button>
+        </div>
+    </form>
+
+    {% if query %}
+    <h4 class="mb-4 text-secondary">Results for "<span class="text-success">{{ query }}</span>":</h4>
+    
+    <div class="row">
+        {% if results %}
+            {% for song in results %}
+            <div class="col-12 mb-3 song-item" 
+     data-src="{{ url_for('static', filename='music/' + song.id + '.webm') }}" 
+     data-title="{{ song.title }}">
+                <div class="card bg-dark text-white p-3 border-secondary h-100">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center mb-2 mb-md-0">
+                            <img src="https://img.youtube.com/vi/{{ song.id }}/mqdefault.jpg" alt="Thumbnail" class="img-fluid rounded" style="max-height: 90px;">
+                        </div>
+                        <div class="col-md-5">
+                            <h5 class="fw-bold text-truncate mb-2">{{ song.title }}</h5>
+                            
+                            {% if song.audio_url %}
+    <div id="player-{{ song.id }}" class="mt-2 d-none">
+        <audio controls class="w-100" style="height: 32px;">
+            <source src="{{ song.audio_url }}" type="audio/webm">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+{% else %}
+    <div id="player-{{ song.id }}" class="mt-2 d-none alert alert-danger p-1 text-center" style="font-size: 13px;">
+        ⚠️ YouTube Restricted: This official video cannot be streamed online. Please use "Download Offline" to listen!
+    </div>
+{% endif %}
+                        </div>
+                        <div class="col-md-5 text-md-end d-flex flex-wrap gap-2 justify-content-md-end">
+                            
+                            <a href="https://www.youtube.com/watch?v={{ song.id }}" target="_blank" class="btn btn-sm btn-danger">
+                                📺 Watch Video
+                            </a>
+                            <a href="{{ url_for('download_song', video_id=song.id, next=request.full_path) }}" class="btn btn-sm btn-success">
+                                📥 Download Offline
+                            </a>
+                            {% if playlists %}
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-sm btn-outline-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    ➕ Add to Playlist
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark">
+                                    {% for pl in playlists %}
+                                    <li>
+                                        <form action="{{ url_for('add_to_playlist_direct') }}" method="POST" style="display:inline;">
+                                            <input type="hidden" name="video_id" value="{{ song.id }}">
+                                            <input type="hidden" name="song_title" value="{{ song.title }}">
+                                            <input type="hidden" name="playlist_id" value="{{ pl.id }}">
+                                            <button type="submit" class="dropdown-item">{{ pl.name }}</button>
+                                        </form>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-warning bg-dark text-warning border-warning">No songs found. Try another keywords!</div>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleAudio(videoId) {
+    var playerDiv = document.getElementById('player-' + videoId);
+    if (playerDiv.classList.contains('d-none')) {
+        playerDiv.classList.remove('d-none');
+    } else {
+        playerDiv.classList.add('d-none');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const allAudioPlayers = document.querySelectorAll('audio');
+
+    allAudioPlayers.forEach(audio => {
+        
+        audio.addEventListener('play', function() {
+            
+            allAudioPlayers.forEach(otherAudio => {
+                if (otherAudio !== audio) {
+                    otherAudio.pause();
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
