@@ -235,6 +235,11 @@ def admin_dashboard():
 def get_youtube_audio_stream(video_id):
     ydl_opts = {
         'format': 'bestaudio/best',
+        'extractor_args':{
+            'youtube':{
+                'player_client': ['ios', 'web']
+            }
+        },
         'quiet': True,
         'no_warnings': True,
     }
@@ -342,6 +347,11 @@ def download_song(video_id):
 
     ydl_opts = {
         'format': 'bestaudio/best',
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['ios', 'web']
+            }
+        },
         'outtmpl': output_template,
         'quiet': True
     }
