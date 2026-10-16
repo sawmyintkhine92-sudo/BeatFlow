@@ -7,6 +7,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import yt_dlp
 ADMIN_CODE = "BF-ADMIN-2026"
+# Render Environment Variable မှ cookies ကို ဖိုင်အဖြစ် ပြန်ဖန်တီးရန်
+cookie_env = os.environ.get('YOUTUBE_COOKIES')
+cookie_file_path = 'cookies.txt'
+if cookie_env:
+  with open(cookie_file_path, 'w', encoding='utf-8') as f:
+    f.write(cookie_env)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mysecretkey12345'
@@ -317,8 +323,15 @@ def search_song():
                 for old_h in user_histories[20:]:
                     db.session.delete(old_h)
                 db.session.commit()
-
-            ydl_opts = {'quiet': True, 'skip_download': True, 'extract_flat': True}
+            ydl_opts = {
+    'quiet': True,
+    'skip_download': True,
+    'extract_flat': True,
+    'cookiefile': (
+        cookie_file_path if os.path.exists(cookie_file_path) else None
+    ),
+    'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+}
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 try:
                     result = ydl.extract_info(f"ytsearch5:{query}", download=False)
@@ -346,15 +359,14 @@ def download_song(video_id):
     output_template = os.path.join(music_folder, f"{video_id}.%(ext)s")
 
     ydl_opts = {
-        'format': 'bestaudio/best',
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['ios', 'web']
-            }
-        },
-        'outtmpl': output_template,
-        'quiet': True
-    }
+    'format': 'bestaudio/best',
+    'cookiefile': (
+        cookie_file_path if os.path.exists(cookie_file_path) else None
+    ),
+    'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+    'outtmpl': output_template,
+    'quiet': True,
+}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
